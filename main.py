@@ -198,11 +198,11 @@ def larp(message, ca):
   caAddy = f"<a href='{caAddy}'>{ca}</a>"
   caName = result[0]['name']
   caSymbol = result[0]['symbol']
-  if "created_at" in result[0]:
-
-    caLaunchedAt = result[0]['created_at'].split("T")[0]
-    caSecsLaunched = result[0]['created_at'].split("T")[1].split(".")[0]
-    caSecsLaunched = f"{caLaunchedAt}  {caSecsLaunched}"
+  #if "created_at" in result[0]:
+  # print(result[0])
+  #caLaunchedAt = result[0]['created_at'].split("T")[0]
+  #caSecsLaunched = result[0]['created_at'].split("T")[1].split(".")[0]
+  #caSecsLaunched = f"{caLaunchedAt}  {caSecsLaunched}"
 
   deployer = checkDeployer(ca)
   freeKey2 = "EK-8RsfJ-ckCnNW5-ddbmS"
@@ -222,7 +222,8 @@ def larp(message, ca):
   str = ""
   if "tokens" in realD:
     tokens = realD['tokens']
-    str = "Deployer wallet holds these tokens\n"
+    if len(tokens) > 0:
+      str = "Deployer wallet holds these tokens\n"
     for token in tokens:
       print(token["tokenInfo"])
       tokenInfo = token['tokenInfo']
@@ -238,6 +239,7 @@ def larp(message, ca):
       totalSupply = totalSupply / decimal
       balance = int(token["balance"])
       balance = balance / decimal
+      print(name)
       if totalSupply == 0:
         continue
       else:
@@ -345,12 +347,9 @@ def larp(message, ca):
 
 @bot.message_handler(commands=["larp"])
 def getLarp(message):
-  try:
 
-    ca = message.text.split(" ")[1]
-    larp(message, ca)
-  except:
-    print("noo")
+  ca = message.text.split(" ")[1]
+  larp(message, ca)
 
 
 @bot.message_handler(commands=['locked'])
