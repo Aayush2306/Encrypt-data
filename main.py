@@ -43,7 +43,7 @@ def getDetails(token, deployer, unlockDate):
   buyM = f"<a href='{buy}'>Maestro</a>"
   unlock = time_diff_to_dhm(unlockDate)
   unlock = unlock[1:].split(",")[0]
-  str = f"{name}\nCA:- <pre>{token}</pre>\nLocked for:- {unlock} \n{buyM} | {chart}\n--------------------------------------------------------\n"
+  str = f"{name}\nLp Pair Address:- <pre>{token}</pre>\nLocked for:- {unlock} \n{buyM} | {chart}\n--------------------------------------------------------\n"
   return str
 
 
