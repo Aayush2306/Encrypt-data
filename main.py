@@ -445,7 +445,7 @@ def walletValue(message, wallet):
     transactions = realD['countTxs']
     addressWallet = f"<a href ='etherscan.io/address/{wallet}'>Wallet</a>"
     opArr = []
-    url5 = f"https://api.ethplorer.io/getAddressHistory/{wallet}?apiKey={freeKey}&type=transfer&limit=40"
+    url5 = f"https://api.ethplorer.io/getAddressHistory/{wallet}?apiKey={freeKey}&type=transfer&limit=30"
     res5 = requests.get(url5)
     data5 = res5.text
     realData5 = json.loads(data5)
@@ -470,7 +470,7 @@ def walletValue(message, wallet):
       str = ""
       profit = 0
 
-    opArr = opArr[:40]
+    opArr = opArr[:20]
     for op in opArr:
       lengthLelo = len(op["operations"])
       name = op["operations"][lengthLelo - 1]["tokenInfo"]['name']
