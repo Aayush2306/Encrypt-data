@@ -74,7 +74,7 @@ def greet(message):
     message.chat.id,
     "https://ibb.co/QMCtgfM",
     caption=
-    f"<b>Welcome To Encryption 🔐 Ai Bot .</b> \n \nThis Bot is used for encrypting a contract address into a format which snipers, telegram scrappers cant detect so the launch is without bots.\n\n<i>use /encrypt then contract address to encrypt the contract \nuse /decrypt to get the contract address from encrypted message\nuse /larp then contract address to check if a token is larp and get various info\n</i>",
+    f"<b>Welcome To Encryption 🔐 Ai Bot .</b> \n \nThis Bot is used for encrypting a contract address into a format which snipers, telegram scrappers cant detect so the launch is without bots.\n\n<i>use /encrypt then contract address to encrypt the contract \nuse /decrypt to get the contract address from encrypted message\nuse /larp then contract address to check if a token is larp and get various info\nuse /locked to get 5 latest token whose lp is locked on unicrypt\nuse /find amd the token name to find telegram of the token</i>",
     parse_mode="html")
 
 
@@ -379,4 +379,35 @@ def lockCheck(message):
   print(contractTeam.events)
 
 
+@bot.message_handler(commands=["find"])
+def find(message):
+  try:
+    foundTg = []
+    tgs = []
+    tg = message.text.split(" ")[1]
+    tgs = [
+      f"@{tg}", f"@{tg}official", f"@{tg}coin", f"@{tg}token", f"@{tg}_cn",
+      f"@{tg}_eth", f"@{tg}crypto", f"@{tg}portal", f"@{tg}_portal",
+      f"@{tg}erc", f"@{tg}_erc", f"@{tg}erc20", f"@{tg}_erc20", f"@{tg}entry",
+      f"@{tg}_token", f"@{tg}_bsc"
+    ]
+    for tg in tgs:
+      try:
+        chat = bot.get_chat(tg)
+        foundTg.append(tg)
+      except telebot.apihelper.ApiTelegramException as e:
+        print(e)
+    if foundTg == []:
+      bot.send_message(
+        message.chat.id,
+        "No Telegram Group Found from the input.Try again in a few mins")
+    else:
+      for tg in foundTg:
+        msg = f"{tg}\n"
+      bot.send_message(message.chat.id,
+                       f"<u>Possible Telegram Groups:-</u>\n\n{msg}",
+                       parse_mode="html")
+  except:
+    print("no")
+  
 bot.polling()
