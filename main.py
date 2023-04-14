@@ -419,5 +419,105 @@ def find(message):
                        parse_mode="html")
   except:
     print("no")
-  
+    
+    
+    
+@bot.message_handler(commands=["wallet"])
+def walletAll(message):
+  if message.text.split(" ")[1].startswith("0x"):
+    wallet = message.text.split(" ")[1]
+    walletValue(message, wallet)
+
+
+def walletValue(message, wallet):
+  freeKey2 = "EK-8RsfJ-ckCnNW5-ddbmS"
+  try:
+    url = f"https://api.ethplorer.io/getAddressInfo/{wallet}?apiKey={freeKey2}&showETHTotals=true"
+    res = requests.get(url)
+    data = res.text
+    realD = json.loads(data)
+    #print(realD)
+    ethPrice = realD['ETH']['price']['rate']
+    ethBalance = realD['ETH']['balance']
+    ethPrice = round(ethPrice, 2)
+    ethBalance = round(ethBalance, 2)
+    totalUsd = round(ethPrice * ethBalance, 1)
+    transactions = realD['countTxs']
+    addressWallet = f"<a href ='etherscan.io/address/{wallet}'>Wallet</a>"
+    opArr = []
+    url5 = f"https://api.ethplorer.io/getAddressHistory/{wallet}?apiKey={freeKey}&type=transfer&limit=40"
+    res5 = requests.get(url5)
+    data5 = res5.text
+    realData5 = json.loads(data5)
+    hashess = realData5['operations']
+    bpArr = []
+    for hash in hashess:
+      bpArr.append(hash['transactionHash'].lower())
+
+    new_list = []
+    for item in bpArr:
+      if item not in new_list:
+        new_list.append(item)
+    for fresh in new_list:
+      url2 = f"https://api.ethplorer.io/getTxInfo/{fresh}?apiKey={freeKey2}"
+      #realh = w3.eth.get_transaction_receipt(fresh['transaction_hash'])
+      #print(realh)
+      res = requests.get(url2)
+      data = res.text
+      #print(data)
+      realD = json.loads(data)
+      opArr.append(realD)
+      str = ""
+      profit = 0
+
+    opArr = opArr[:40]
+    for op in opArr:
+      lengthLelo = len(op["operations"])
+      name = op["operations"][lengthLelo - 1]["tokenInfo"]['name']
+      if name == "WETH":
+        lengthHJi = len(op['operations'])
+        value = op['operations'][lengthHJi - 1]['value']
+        value = int(value) / 10**18
+        value = round(value, 3)
+        naam = op['operations'][0]['tokenInfo']['name']
+        if naam == "WETH":
+          continue
+        address = op['operations'][0]['tokenInfo']['address']
+        address = f"https://etherscan.io/token/{address}"
+        stylenaam = f"<a href='{address}'>{naam}</a>"
+        hash = op["hash"]
+        hash = f"https://etherscan.io/tx/{hash}"
+        hashLink = f"<a href='{hash}'>hash</a>"
+        str = str + f"Sold {stylenaam} for {value}eth at {hashLink}\n\n"
+        profit = profit + value
+
+      else:
+        weth = op["operations"][0]['tokenInfo']['name']
+        length = len(op["operations"])
+        if weth == "WETH":
+          name = op["operations"][length - 1]['tokenInfo']['name']
+          address = op["operations"][length - 1]['tokenInfo']['address']
+          address = f"https://etherscan.io/token/{address}"
+          stylenaam = f"<a href='{address}'>{name}</a>"
+          value = op["operations"][0]['value']
+          value = int(value) / 10**18
+          value = round(value, 3)
+          hash = op['hash']
+          hash = f"https://etherscan.io/tx/{hash}"
+          hashLink = f"<a href='{hash}'>hash</a>"
+          str = str + f"Bought {stylenaam} for {value}eth at {hashLink}\n\n"
+          profit = profit - value
+
+    profit = round(profit, 3)
+    bot.send_message(
+      message.chat.id,
+      f"{addressWallet} <b><i><pre>{wallet}</pre></i></b>\n\n<b>Basic Info</b>\n\n<i>Balance:- {ethBalance}eth\nUsdValue:- ${totalUsd}\nTotal Transactions:-{transactions}\n\n<b>Latest 20 Tokens Buys And Sells</b>\n\n{str}\n</i><b>Totals Profits Made:- </b> <i>{profit}eth</i>\n\n<b><u>Note:-The user might still be holding his tokens so profits could be negative</u></b>",
+      parse_mode="html",
+      disable_web_page_preview=True)
+  except:
+    bot.send_message(
+      message.chat.id,
+      f"<b><u>Some error occured check for <pre> {wallet}</pre></u></b>",
+      parse_mode="html")
+    
 bot.polling()
