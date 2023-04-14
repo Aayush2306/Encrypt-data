@@ -388,22 +388,32 @@ def find(message):
     tgs = [
       f"@{tg}", f"@{tg}official", f"@{tg}coin", f"@{tg}token", f"@{tg}_cn",
       f"@{tg}_eth", f"@{tg}crypto", f"@{tg}portal", f"@{tg}_portal",
-      f"@{tg}erc", f"@{tg}_erc", f"@{tg}erc20", f"@{tg}_erc20", f"@{tg}entry",
+      f"@{tg}Erc", f"@{tg}_erc", f"@{tg}erc20", f"@{tg}_erc20", f"@{tg}entry",
       f"@{tg}_token", f"@{tg}_bsc"
     ]
+    print(tgs)
     for tg in tgs:
       try:
         chat = bot.get_chat(tg)
+        #print(chat)
         foundTg.append(tg)
+
       except telebot.apihelper.ApiTelegramException as e:
         print(e)
+    print(foundTg)
     if foundTg == []:
+      msg = ""
+      for tg in tgs:
+        print(tg)
+        msg = f"{msg}{tg}\n"
       bot.send_message(
         message.chat.id,
-        "No Telegram Group Found from the input.Try again in a few mins")
+        f"No Telegram Group Found from the input.Try again in a few mins or try groups given below\n\n{msg}"
+      )
     else:
+      msg = ""
       for tg in foundTg:
-        msg = f"{tg}\n"
+        msg = f"{msg}{tg}\n"
       bot.send_message(message.chat.id,
                        f"<u>Possible Telegram Groups:-</u>\n\n{msg}",
                        parse_mode="html")
