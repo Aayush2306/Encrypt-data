@@ -80,46 +80,50 @@ def greet(message):
 
 @bot.message_handler(commands=['encrypt'])
 def encrypt(message):
-  plaintext = message.text.split(' ')[1]
-  if plaintext.startswith("0x"):
-    ciphertext, nonce = encrypt_chacha20(plaintext)
-    bot.send_message(
-      message.chat.id,
+  try:
+    plaintext = message.text.split(' ')[1]
+    if plaintext.startswith("0x"):
+      ciphertext, nonce = encrypt_chacha20(plaintext)
+      bot.send_message(
+        message.chat.id,
       f"<i>Below is the encrypted message for the contract address you sent.Click to copy the encrypted message use /decrypt to get back the contract address</i>\n\n<pre>{ciphertext.hex()},{nonce.hex()}</pre>",
       parse_mode="html")
-  else:
-    bot.send_message(
-      message.chat.id,
-      f"<b>This is not a contract address. Try again with a valid address</b>",
+    else:
+      bot.send_message(
+        message.chat.id,
+        f"<b>This is not a contract address. Try again with a valid address</b>",
       parse_mode="html")
-
-
+  except:
+    print("no")
+ 
 @bot.message_handler(commands=['decrypt'])
 def decrypt(message):
-  parts = message.text.split(' ')[1].split(',')
-  if len(parts) != 2:
-    bot.send_message(
-      message.chat.id,
-      f"<b>Invalid input format. Please provide the ciphertext and nonce separated by a comma.</b>",
-      parse_mode="html")
-  else:
-    try:
-      ciphertext = bytes.fromhex(parts[0])
-      nonce = bytes.fromhex(parts[1])
-      plaintext = decrypt_chacha20(ciphertext, nonce)
-      maestro = types.InlineKeyboardButton(
-        "Buy Using Maestro",
-        url=f"https://t.me/MaestroSniperBot?start={plaintext}")
-      reply_markup = types.InlineKeyboardMarkup([[maestro]])
-      bot.send_message(message.chat.id,
+  try:
+    parts = message.text.split(' ')[1].split(',')
+    if len(parts) != 2:
+      bot.send_message(
+        message.chat.id,
+        f"<b>Invalid input format. Please provide the ciphertext and nonce separated by a comma.</b>",
+        parse_mode="html")
+    else:
+      try:
+        ciphertext = bytes.fromhex(parts[0])
+        nonce = bytes.fromhex(parts[1])
+        plaintext = decrypt_chacha20(ciphertext, nonce)
+        maestro = types.InlineKeyboardButton(
+          "Buy Using Maestro",
+          url=f"https://t.me/MaestroSniperBot?start={plaintext}")
+        reply_markup = types.InlineKeyboardMarkup([[maestro]])
+        bot.send_message(message.chat.id,
                        f"<pre>{plaintext}</pre>",
                        parse_mode="html",
                        reply_markup=reply_markup)
-    except ValueError:
-      bot.send_message(message.chat.id,
+      except ValueError:
+        bot.send_message(message.chat.id,
                        f"<b>Invalid ciphertext or nonce.</b>",
                        parse_mode="html")
-
+  except:
+    print("no")
 
 def time_diff_to_dhm(timestamp):
   """
@@ -419,9 +423,8 @@ def find(message):
                        parse_mode="html")
   except:
     print("no")
-    
-    
-    
+
+
 @bot.message_handler(commands=["wallet"])
 def walletAll(message):
   if message.text.split(" ")[1].startswith("0x"):
@@ -519,5 +522,6 @@ def walletValue(message, wallet):
       message.chat.id,
       f"<b><u>Some error occured check for <pre> {wallet}</pre></u></b>",
       parse_mode="html")
-    
+
+
 bot.polling()
