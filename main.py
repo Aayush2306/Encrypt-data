@@ -246,7 +246,12 @@ def larp(message, ca):
         name = tokenInfo['name']
         if name.startswith("Uniswap V"):
           name = "Liqiuidity"
-        decimal = int(tokenInfo["decimals"])
+        
+        if "decimals" in tokenInfo:
+          decimal = int(tokenInfo["decimals"])
+        else:
+          continue
+        #decimal = int(tokenInfo["decimals"])
         decimal = 10**decimal
         totalSupply = int(tokenInfo['totalSupply'])
         totalSupply = totalSupply / decimal
