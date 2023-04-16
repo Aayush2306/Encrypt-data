@@ -371,7 +371,7 @@ def getLarp(message):
 
 @bot.message_handler(commands=['locked'])
 def lockCheck(message):
-  text = f"<b><u>5 Most Recent Locked Tokens on Unicript</u></b>\n\n"
+  text = f"<b><u>5 Most Recent Locked Tokens on Unicrypt</u></b>\n\n"
   contract_address = '0x663A5C229c09b049E36dCc11a9B0d4a8Eb9db214'
   contract_abi = abiLp
   contract_team = "0xE2fE530C047f2d85298b07D9333C05737f1435fB"
