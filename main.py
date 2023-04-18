@@ -30,7 +30,7 @@ ethApi = "7UMIKS3MQXWYW975VTPF84Y25EDW4B2NXA"
 apikeyeth = "7UMIKS3MQXWYW975VTPF84Y25EDW4B2NXA"
 
 
-def getDetails(token, deployer, unlockDate):
+def getDetails(token, deployer, unlockDate, lockDate):
   try:
     url = f"https://api.etherscan.io/api?module=account&action=tokentx&address={token}&startblock=0&endblock=999999999&sort=asc&apikey={ethApi}"
     response = requests.get(url)
@@ -43,9 +43,12 @@ def getDetails(token, deployer, unlockDate):
     #info = f"https://t.me/SmartWalletAiBot?start={token_ca}"
     #infoM = f"<a href='{info}'>Click Here To Get Detailed Info</a>"
     buyM = f"<a href='{buy}'>Maestro</a>"
+    locker = f"https://app.uncx.network/amm/uni-v2/pair/{token}"
+    lockLink = f"<a href='{locker}'>Lock Link</a>"
     unlock = time_diff_to_dhm(unlockDate)
+    lockedat = time_diff_to_dhm(lockDate)
     unlock = unlock[1:].split(",")[0]
-    str = f"{name}\nLp Pair Address:- <pre>{token}</pre>\nLocked for:- {unlock} \n{buyM} | {chart}\n--------------------------------------------------------\n"
+    str = f"{name}\nLp Pair Address:- <pre>{token}</pre>\nLocked {lockedat} ago\nLocked for:- {unlock} \n{buyM} | {chart} | {lockLink}\n--------------------------------------------------------\n"
     return str
   except:
     print("no")
@@ -389,10 +392,12 @@ def lockCheck(message):
     fromBlock=latest_block - 10000,
     toBlock='latest').get_all_entries()[-1:-6:-1]
   for event in events:
+    print(event)
     token = event['args']['lpToken']
     deployer = event["args"]['user']
     unlockDate = event['args']['unlockDate']
-    str = getDetails(token, deployer, unlockDate)
+    lockDate = event['args']['lockDate']
+    str = getDetails(token, deployer, unlockDate, lockDate)
     text = text + str
 
   bot.send_message(message.chat.id,
@@ -470,8 +475,9 @@ def pending(message):
   bot.send_message(
     message.chat.id,
     f"<b><u>Ethereum Gas Fees </u></b>\n\n<b>Low</b>:- <i>{gasGwei} GWEI</i>\n<b>Average</b>:- <i>{gasGwei} GWEI</i>\n<b>High</b>:- <i>{highGas} GWEI</i>",
-    parse_mode="html")    
-    
+    parse_mode="html")
+
+
 def walletValue(message, wallet):
   freeKey2 = "EK-8RsfJ-ckCnNW5-ddbmS"
   try:
