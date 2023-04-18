@@ -246,7 +246,7 @@ def larp(message, ca):
         name = tokenInfo['name']
         if name.startswith("Uniswap V"):
           name = "Liqiuidity"
-        
+
         if "decimals" in tokenInfo:
           decimal = int(tokenInfo["decimals"])
         else:
@@ -416,9 +416,12 @@ def find(message):
     print(tgs)
     for tg in tgs:
       try:
-        chat = bot.get_chat(tg)
-        #print(chat)
-        foundTg.append(tg)
+        url = f'https://api.telegram.org/bot{Api_Key}/getChat?chat_id={tg}'
+        response = requests.get(url).json()
+        if response['ok'] == True:
+          foundTg.append(tg)
+        else:
+          print('Group does not exist!')
 
       except telebot.apihelper.ApiTelegramException as e:
         print(e)
@@ -430,8 +433,7 @@ def find(message):
         msg = f"{msg}{tg}\n"
       bot.send_message(
         message.chat.id,
-        f"No Telegram Group Found from the input.Try again in a few mins or try groups given below\n\n{msg}"
-      )
+        f"No Telegram Group Found from the input.Try again in a few mins.")
     else:
       msg = ""
       for tg in foundTg:
