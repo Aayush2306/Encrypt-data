@@ -39,7 +39,7 @@ def getDetails(token, deployer, unlockDate, lockDate):
     #token_ca = data["result"][0]["contractAddress"]
     name = data["result"][0]['tokenName']
     buy = f"https://t.me/MaestroSniperBot?start={token}"
-    chart = f"<a href='https://dexscreener.com/ethereum/{token}'>Dexscreener</a>"
+    chart = f"<a href='https://dexscreener.com/ethereum/{token}'>DexSc</a>"
     #info = f"https://t.me/SmartWalletAiBot?start={token_ca}"
     #infoM = f"<a href='{info}'>Click Here To Get Detailed Info</a>"
     buyM = f"<a href='{buy}'>Maestro</a>"
@@ -47,8 +47,15 @@ def getDetails(token, deployer, unlockDate, lockDate):
     lockLink = f"<a href='{locker}'>Lock Link</a>"
     unlock = time_diff_to_dhm(unlockDate)
     lockedat = time_diff_to_dhm(lockDate)
+    lockedatHr = lockedat.split(",")[1]
+    lockedatMin = lockedat.split(",")[2]
+    if lockedatHr.startswith("0"):
+      lala = ""
+    else:
+      lala = f"{lockedatHr} {lockedatMin}"
+
     unlock = unlock[1:].split(",")[0]
-    str = f"{name}\nLp Pair Address:- <pre>{token}</pre>\nLocked {lockedat} ago\nLocked for:- {unlock} \n{buyM} | {chart} | {lockLink}\n--------------------------------------------------------\n"
+    str = f"{name}\nLp Pair Address:- <pre>{token}</pre>\nLocked {lala} ago\nLocked for:- {unlock} \n{buyM} | {chart} | {lockLink}\n----------------------------------------------------\n"
     return str
   except:
     print("no")
@@ -392,7 +399,7 @@ def lockCheck(message):
     fromBlock=latest_block - 10000,
     toBlock='latest').get_all_entries()[-1:-6:-1]
   for event in events:
-    print(event)
+    #print(event)
     token = event['args']['lpToken']
     deployer = event["args"]['user']
     unlockDate = event['args']['unlockDate']
@@ -400,10 +407,15 @@ def lockCheck(message):
     str = getDetails(token, deployer, unlockDate, lockDate)
     text = text + str
 
-  bot.send_message(message.chat.id,
-                   f"{text}",
-                   parse_mode="html",
-                   disable_web_page_preview=True)
+  keyboard = types.InlineKeyboardMarkup()
+  button = types.InlineKeyboardButton(text='Refresh', callback_data='refresh')
+  keyboard.add(button)
+  bot.send_message(
+    message.chat.id,
+    f"{text}",
+    parse_mode="html",
+    disable_web_page_preview=True,
+  )
   print(contractTeam.events)
 
 
