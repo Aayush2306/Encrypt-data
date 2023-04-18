@@ -15,6 +15,7 @@ from abi import abiTeam
 key = os.urandom(32)
 nonce = os.urandom(8)
 Api_Key = "6128069220:AAGwBaVvB6lZO21ha6wnFCdvHpI8UhzlcIU"
+apii = "6016921915:AAEdyj5pFBNoUCf1kIqCvQ1Su8ku9d2oJhs"
 bot = telebot.TeleBot(Api_Key)
 mainData = {}
 infura = "https://mainnet.infura.io/v3/c1f653384020470d942fdd4d8eb97795"
@@ -416,7 +417,7 @@ def find(message):
     print(tgs)
     for tg in tgs:
       try:
-        url = f'https://api.telegram.org/bot{Api_Key}/getChat?chat_id={tg}'
+        url = f'https://api.telegram.org/bot{apii}/getChat?chat_id={tg}'
         response = requests.get(url).json()
         if response['ok'] == True:
           foundTg.append(tg)
