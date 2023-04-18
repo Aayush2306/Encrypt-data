@@ -454,6 +454,24 @@ def walletAll(message):
     print("noo")
 
 
+@bot.message_handler(commands=["gas"])
+def pending(message):
+
+  url = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
+  response = requests.get(url)
+  data = response.json()
+  eth_price_usd = data['USD']
+  print(eth_price_usd)
+  gas = w4.eth.gas_price
+  gasGwei = gas / 10**9
+  gasGwei = round(gasGwei)
+  highGas = round(gasGwei * 1.2)
+
+  bot.send_message(
+    message.chat.id,
+    f"<b><u>Ethereum Gas Fees </u></b>\n\n<b>Low</b>:- <i>{gasGwei} GWEI</i>\n<b>Average</b>:- <i>{gasGwei} GWEI</i>\n<b>High</b>:- <i>{highGas} GWEI</i>",
+    parse_mode="html")    
+    
 def walletValue(message, wallet):
   freeKey2 = "EK-8RsfJ-ckCnNW5-ddbmS"
   try:
