@@ -421,8 +421,6 @@ def find(message):
         response = requests.get(url).json()
         if response['ok'] == True:
           foundTg.append(tg)
-        else:
-          print('Group does not exist!')
 
       except telebot.apihelper.ApiTelegramException as e:
         print(e)
