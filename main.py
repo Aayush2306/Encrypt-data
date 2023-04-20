@@ -125,10 +125,11 @@ def early(message):
       a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ❌\n\n"
     else:
       addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
-      a = a + f"Address :- <pre>{wallet}</pre>\nStill Holding :- ✅\n\n"
+      a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\n\n"
   bot.send_message(message.chat.id,
                    f"First 10 Buyer of the token you seached\n\n{a}",
-                   parse_mode="html")
+                   parse_mode="html",
+                   disable_web_page_preview=True)
 
 
 def greetings(addy, message, msg):
