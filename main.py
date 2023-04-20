@@ -86,6 +86,69 @@ def decrypt_chacha20(ciphertext, nonce):
   return plaintext
 
 
+
+@bot.message_handler(commands=['early'])
+def early(message):
+  try:
+    a = []
+    ca = message.text.split(" ")[1]
+    ca = w3.toChecksumAddress(ca)
+    mssg = f"First 10 early buyers wallets of the token you seached"
+    topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
+    event_filter = w3.eth.filter({
+      'fromBlock': 0,
+      'toBlock': 'latest',
+      'address': ca,
+      'topics': [topic_hash]
+    })
+    transfer_events = event_filter.get_all_entries()[3:85]
+    for event in transfer_events:
+      toAds = "0x" + (event['topics'][2].hex())[26:]
+
+      if toAds.lower() != ca.lower():
+        print(toAds)
+        a.append(toAds)
+      #print(a)
+
+    print(a)
+    #a = list(set(a))
+    print(a)
+    b = a[:10]
+    c = []
+    for item in b:
+      if item not in c:
+        c.append(item)
+    greetings(b, message, mssg)
+  except:
+    print("no")
+
+
+def greetings(addy, message, msg):
+  try:
+    if len(addy) >= 1:
+      keyboard = []
+      for i in range(0, len(addy), 2):
+        row = []
+        for j in range(2):
+          if i + j < len(addy):
+            link = addy[i + j]
+            button = types.InlineKeyboardButton(
+              text=f"Wallet {i + j + 1}",
+              url=f"https://etherscan.io/address/{link}")
+            row.append(button)
+        keyboard.append(row)
+      reply_markup = types.InlineKeyboardMarkup(keyboard)
+      bot.send_message(message.chat.id,
+                       f"<b><i>{msg}.</i></b>",
+                       reply_markup=reply_markup,
+                       parse_mode="html")
+    addy = []
+  except:
+    print("no")
+
+
+
+
 @bot.message_handler(commands=['start'])
 def greet(message):
   bot.send_photo(
