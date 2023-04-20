@@ -15,6 +15,7 @@ from abi import abiTeam
 key = os.urandom(32)
 nonce = os.urandom(8)
 Api_Key = "6128069220:AAGwBaVvB6lZO21ha6wnFCdvHpI8UhzlcIU"
+#Api_Key = "6016921915:AAEdyj5pFBNoUCf1kIqCvQ1Su8ku9d2oJhs"
 apii = "6016921915:AAEdyj5pFBNoUCf1kIqCvQ1Su8ku9d2oJhs"
 bot = telebot.TeleBot(Api_Key)
 mainData = {}
@@ -469,6 +470,350 @@ def walletAll(message):
       walletValue(message, wallet)
   except:
     print("noo")
+
+
+def get_tx_count(address):
+  try:
+    checksummed_addr = Web3.toChecksumAddress(address)
+    count = w3.eth.get_transaction_count(checksummed_addr)
+    return count
+  except:
+    print("bo")
+
+
+def get_tx_counts(addresses):
+  try:
+    tx_counts = {}
+    for address in addresses:
+      tx_counts[address] = get_tx_count(address)
+
+    print("slow")
+    return tx_counts
+  except:
+    print("noo")
+
+
+def get_contract_holders(message, contract_address):
+  try:
+    a = []
+    api_key = "GFe9A3lNYWFSv1jO5NmC14bUHeW4oedryp1BPUHxAnAMZUL7C3Nd0Ppjaru3003R"
+    params = {
+      "addresses": [contract_address],
+      "chain": "eth",
+    }
+
+    result = evm_api.token.get_token_metadata(
+      api_key=api_key,
+      params=params,
+    )
+
+    #print(result)
+    name = result[0]['name']
+    symbol = result[0]['symbol']
+    decimal = result[0]['decimals']
+    a = []
+    contract_address = w3.toChecksumAddress(contract_address)
+    try:
+      topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
+      event_filter = w3.eth.filter({
+        'fromBlock': 0,
+        'toBlock': 'latest',
+        'address': contract_address,
+        'topics': [topic_hash]
+      })
+      transfer_events = event_filter.get_all_entries()[3:150]
+      for event in transfer_events:
+        toAds = "0x" + (event['topics'][2].hex())[26:]
+        if toAds.lower() != contract_address.lower():
+          a.append(toAds)
+    except:
+      bot.send_message(message.chat.id, f"You're Querying a very old token")
+    if len(a) == 0:
+      bot.send_message(
+        message.chat.id,
+        f"<b>Some error occured maybe the contract is not live yet try again with a diffrent ca </b>",
+        parse_mode="html")
+      return
+
+  #a = list(set(a))
+  #b = a[:5]
+  #print(b)
+
+    tx_counts = get_tx_counts(a)
+    print(tx_counts)
+    less_than_50 = [
+      wallet for wallet, count in tx_counts.items() if count > 1 and count < 51
+    ]
+    less_than_20 = [
+      wallet for wallet, count in tx_counts.items() if count > 1 and count < 21
+    ]
+
+    less_than_10 = [
+      wallet for wallet, count in tx_counts.items() if count > 1 and count < 11
+    ]
+    addy = less_than_10
+    less_than_5 = [
+      wallet for wallet, count in tx_counts.items() if count > 1 and count < 5
+    ]
+    #print(less_than_5)
+    less_than_3 = [
+      wallet for wallet, count in tx_counts.items() if count > 1 and count < 4
+    ]
+    print("3")
+    lenLessThan3 = len(less_than_3)
+    lenLessThan5 = len(less_than_5)
+    lenLessThan10 = len(less_than_10)
+    lenLessThan20 = len(less_than_20)
+    lenLessThan50 = len(less_than_50)
+    #print(lenLessThan10)
+    percentage = round((lenLessThan20 / len(a)) * 100, 2)
+    contractCheckKrlo = f"<a href='https://etherscan.io/token/{contract_address}'>Contract</a>"
+    dexSc = f"<a href='https://dexscreener.com/ethereum/{contract_address}'>DexScreener</a>"
+    dextools = f"<a href='https://www.dextools.io/app/en/ether/pair-explorer/{contract_address}'>Dextools</a>"
+    #print(percentage)
+    emojiHit = "\U0001F3AF"
+    round_percentage = round(percentage, 2)
+    #alphaHits = checkedCa[contract_address]
+    buyMaestro = f"<a href='https://t.me/MaestroSniperBot?start={contract_address}'>Maestro</a>"
+    dataaddy = json.dumps({"addy": contract_address})
+    #dataWallet = str(b)
+    #callback_data_wallet = json.dumps(dataWallet)
+    #print(dataWallet)
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    button = telebot.types.InlineKeyboardButton(
+      "Click Here For Info About The Token", callback_data=dataaddy)
+    #button2 = telebot.types.InlineKeyboardButton("Early Buyer Wallet Address",
+    #                                            callback_data=dataWallet)
+    keyboard.add(button)
+
+    bot.send_message(
+      message.chat.id,
+      f"Fresh Wallets Analysis 🔐n\n<i>{name}</i> <i>({symbol}) ETH</i>\nDecimals:- <i>{decimal}</i>\nCA:- <pre>{contract_address}</pre>\n\nDetailed Analysis of holders 🔍\n\nLess Than 50 transactions :- <i>{lenLessThan50}</i>\nLess Than 20 transactions :- <i>{lenLessThan20}</i>\nless Than 10 transactions :- <i>{lenLessThan10}</i>\nless Than 5 transactions :- {lenLessThan5}\n\nNumber of wallets Checked :- {len(a)}\n\nPercentage of fresh wallet:- {percentage}%\n\n{buyMaestro} | {dextools} | {contractCheckKrlo}",
+      parse_mode="html",
+      reply_markup=keyboard,
+      disable_web_page_preview=True)
+  except:
+    print("noo")
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def additional_info_handler(call):
+  data = (call.data)
+  message = call.message
+  if 'addy' in data:
+    data = json.loads(data)
+    ca = data['addy']
+    mainSabkaBaap(message, ca)
+
+
+def mainSabkaBaap(message, caInfo):
+  emojiTick = '\U00002714'
+  emojiCross = '\U0000274C'
+  try:
+
+    dexurl = f"https://api.dexscreener.com/latest/dex/tokens/{caInfo}"
+    ress = requests.get(dexurl)
+    deta = ress.text
+    realRes = json.loads(deta)
+    #print(realRes['pairs'][0])
+    liqudity = realRes['pairs'][0]['liquidity']['usd']
+    liqudity = float(liqudity)
+    pooledEth = realRes['pairs'][0]['liquidity']['quote']
+    pooledEth = round(pooledEth, 2)
+
+    url = f"https://api.ethplorer.io/getTokenInfo/{caInfo}?apiKey={freeKey}"
+    response_API = requests.get(url)
+    data = response_API.text
+    realData = json.loads(data)
+    #print(realData)
+    name = realData["name"]
+    holderCount = realData["holdersCount"]
+    symbol = realData["symbol"]
+    tax = getTaxes(caInfo)
+    if isinstance(tax, str):
+      textTax = tax
+    elif tax[0] == False or tax[1] == False:
+      textTax = ""
+    else:
+      textTax = f"Buy Tax {tax[0]} | Sell Tax {tax[1]}"
+    deployer = realData["owner"]
+    if deployer.startswith("0x0000"):
+      renounce = f"Contract Is Renounced {emojiTick}"
+    else:
+      renounce = f"Contract is not Renounced {emojiCross}"
+    totalSupply = realData["totalSupply"]
+    decimal = realData['decimals']
+    decimals = 10**float(decimal)
+    realSupply = float(totalSupply) / float(decimals)
+    realSupply = int(realSupply)
+    #print(float(totalSupply) / decimal)
+    txs = realData["transfersCount"]
+    url2 = f"https://api.ethplorer.io/getTopTokenHolders/{caInfo}?apiKey={freeKey}&limit=50"
+    response_API2 = requests.get(url2)
+    data2 = response_API2.text
+    real_data2 = json.loads(data2)
+    share2 = get_holders(real_data2["holders"], "share")
+    if len(share2) == 1:
+      topBuyer = share2[0]
+    else:
+      share2.pop(0)
+      topBuyer = share2[0]
+    price = realRes['pairs'][0]['priceUsd']
+    mcap = float(price) * realSupply
+    mcap = round(mcap, 1)
+
+    deployerReal = checkDeployer(caInfo)
+    avg = 0
+    for i, shr in enumerate(share2):
+      avg = avg + shr
+
+    avg = avg / len(share2)
+    avg = round(avg, 2)
+    ratio = round(mcap / liqudity, 2)
+    deployerLinks = f"<a href='https://etherscan.io/address/{deployerReal}'>Deployer Wallet</a>"
+    contractCheckKrlo = f"<a href='https://etherscan.io/token/{caInfo}'>Contract</a>"
+    keyboard = [[
+      types.InlineKeyboardButton(
+        "Dextools",
+        url=f"https://www.dextools.io/app/en/ether/pair-explorer/{caInfo}"),
+      types.InlineKeyboardButton(
+        "DexScreener", url=f"https://dexscreener.com/ethereum/{caInfo}")
+    ],
+                [
+                  types.InlineKeyboardButton(
+                    "Honeypot Checker",
+                    url=f"https://honeypot.is/ethereum?address={caInfo}"),
+                  types.InlineKeyboardButton(
+                    "Buy Using Maestro",
+                    url=f"https://t.me/MaestroSniperBot?start={caInfo}")
+                ]]
+    reply_markup = types.InlineKeyboardMarkup(keyboard)
+    check = check_contract(deployerReal, caInfo)
+    time = check[2]
+    funder = f"<a href='https://etherscan.io/address/{check[1]}'>Funded By</a>"
+    if check[0] == 1:
+      word = f"Deployer wallet has no past projects{emojiCross}"
+    else:
+      word = f"Deployer has {(check[0]-1)} past projects{emojiTick}"
+
+
+#print(word)
+    bot.send_message(
+      message.chat.id,
+      f"<strong><b>Basic Info</b></strong>\n------------------\n<i>{name} ({symbol}) ETH\n{textTax}\n<b>Total Supply</b>:- {realSupply}\n<b>Decimals</b>:- {int(decimal)}\n<b>Launched</b>:- {time}\n<b>MarketCap</b>:-  ${mcap}\n<b>Liquidity</b>:- {pooledEth}eth\n<b>Mc/Liq</b>:- {ratio}\n<b>Total Transcations</b>:- {txs}\n<b>Holders</b>:- {holderCount} </i>\n\n<b>Some Important Details</b>\n---------------------------------------\n<i>{renounce}\nTop Holder Has {topBuyer}% of supply\nAverage wallet distribution of first 50 wallets is {avg}%\n{word}</i>\n\n{deployerLinks} | {contractCheckKrlo} | {funder}\n\n<b>Always Do Your Own Reasearch Bot Only Provide You tools to filter out projects but it does not guarrente the project is safe.</b>",
+      parse_mode="html",
+      reply_markup=reply_markup,
+      disable_web_page_preview=True)
+  except:
+    bot.send_message(
+      message.chat.id,
+      f"<b>Some Error Ocuured Most Likely Caused If Token is not live yet</b>",
+      parse_mode="html")
+
+
+def getTaxes(caInfo):
+  buyTax = False
+  sellTax = False
+  ca = w3.toChecksumAddress(caInfo)
+  url = f"https://api.etherscan.io/api?module=contract&action=getabi&address={ca}"
+  response = requests.get(url)
+  #print(response)
+  if response.status_code == 200:
+    abi = response.json()
+    #print(abi)
+    abi = response.json()["result"]
+    if abi == 'Contract source code not verified':
+      return abi
+    contract = w3.eth.contract(address=ca, abi=abi)
+    name = contract.all_functions()
+    #print(name)
+    for func in name:
+      if str(func) == "<Function buyTotalFees()>":
+        buyTax = contract.functions.buyTotalFees().call()
+      if str(func) == "<Function sellTotalFees()>":
+        sellTax = contract.functions.sellTotalFees().call()
+
+  return [buyTax, sellTax]
+
+
+def get_holders(array_of_objects, key):
+  return [obj[key] for obj in array_of_objects]
+
+
+def check_contract(deployer, caInfo):
+  #print(infoToken)
+  url = f"https://api.etherscan.io/api?module=account&action=txlist&address={deployer}&startblock=0&endblock=99999999&sort=asc&apikey=7UMIKS3MQXWYW975VTPF84Y25EDW4B2NXA"
+  response = requests.get(url)
+  data = response.json()
+  transactions = data['result']
+  #transactions = transactions[::-1]
+  funder = transactions[0]["from"]
+  contract_count = 0
+  for transaction in transactions:
+    if transaction['contractAddress'] != "":
+      contract_count += 1
+
+    if transaction['contractAddress'].lower() == caInfo.lower():
+      #print("hii")
+
+      uni = transaction['timeStamp']
+      uni = float(uni)
+      current_time = datetime.datetime.now().timestamp()
+
+      time_difference = current_time - uni
+      dt = datetime.timedelta(seconds=time_difference)
+      days = dt.days
+      hours, remainder = divmod(dt.seconds, 3600)
+      minutes, seconds = divmod(remainder, 60)
+      if days == 1:
+        time_difference_str = f"1 day"
+      elif days == 0:
+        time_difference_str = f""
+      else:
+        time_difference_str = f"{days} days"
+
+      if hours == 1:
+        time_difference_str += f" 1 hr"
+      elif hours == 0:
+        time_difference_str += f""
+      else:
+        time_difference_str += f" {hours} hrs"
+
+      if minutes == 1:
+        time_difference_str += f" 1 min"
+      else:
+        time_difference_str += f" {minutes} mins"
+
+      if seconds == 1:
+        time_difference_str += f" 1 sec"
+      else:
+        time_difference_str += f" {seconds} secs"
+      #print(time_difference_str)
+
+  return [contract_count, funder, time_difference_str]
+
+
+@bot.message_handler(commands=["ca"])
+def echo_message(message):
+  try:
+    global checkedCa
+    emojiHi = '\U0001F44B'
+    emojiClock = '\U0001F551'
+    user_name = message.from_user.first_name
+    if not message.text.split(" ")[1].startswith("0x"):
+      bot.send_message(
+        message.chat.id,
+        f"<tg-spoiler><b><i>Hey, I Know you have nothing to do in life apart from shitcoins but i have a life pls send correct ca</i></b></tg-spoiler>",
+        parse_mode="html")
+    else:
+      contract_address = message.text.split(" ")[1]
+      bot.send_message(
+        message.chat.id,
+        f"<i><b>Hey! {user_name} {emojiHi} Searching Your Query Might take up to 30 secs{emojiClock}!</b></i>",
+        parse_mode="html")
+      get_contract_holders(message, contract_address)
+  except:
+    print("no")
 
 
 @bot.message_handler(commands=["gas"])
