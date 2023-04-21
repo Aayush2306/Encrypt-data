@@ -88,48 +88,51 @@ def decrypt_chacha20(ciphertext, nonce):
 
 @bot.message_handler(commands=['early'])
 def early(message):
-  a = []
-  ca = message.text.split(" ")[1]
-  cas = w3.toChecksumAddress(ca)
-  mssg = f"First 10 early buyers wallets of the token you seached"
-  topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
-  event_filter = w3.eth.filter({
-    'fromBlock': 0,
-    'toBlock': 'latest',
-    'address': cas,
-    'topics': [topic_hash]
-  })
-  transfer_events = event_filter.get_all_entries()[3:85]
-  for event in transfer_events:
-    toAds = "0x" + (event['topics'][2].hex())[26:]
+  try:
+    a = []
+    ca = message.text.split(" ")[1]
+    cas = w3.toChecksumAddress(ca)
+    mssg = f"First 10 early buyers wallets of the token you seached"
+    topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
+    event_filter = w3.eth.filter({
+      'fromBlock': 0,
+      'toBlock': 'latest',
+      'address': cas,
+      'topics': [topic_hash]
+    })
+    transfer_events = event_filter.get_all_entries()[3:85]
+    for event in transfer_events:
+      toAds = "0x" + (event['topics'][2].hex())[26:]
 
-    if toAds.lower() != ca.lower():
-      #print(toAds)
-      a.append(toAds)
+      if toAds.lower() != ca.lower():
+        #print(toAds)
+        a.append(toAds)
     #print(a)
 
   #print(a)
   #a = list(set(a))
   #print(a)
-  b = a[:10]
-  a = ""
-  for wallet in b:
-    url = f"https://api.ethplorer.io/getAddressInfo/{wallet}?apiKey={freeKey}&token={ca}"
-    #print(url)
-    res = requests.get(url)
-    data = res.text
-    realD = json.loads(data)
-    print(realD)
-    if realD["tokens"] == []:
-      addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
-      a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ❌\n\n"
-    else:
-      addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
-      a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\n\n"
-  bot.send_message(message.chat.id,
-                   f"First 10 Buyer of the token you seached\n\n{a}",
-                   parse_mode="html",
-                   disable_web_page_preview=True)
+    b = a[:10]
+    a = ""
+    for wallet in b:
+      url = f"https://api.ethplorer.io/getAddressInfo/{wallet}?apiKey={freeKey}&token={ca}"
+      #print(url)
+      res = requests.get(url)
+      data = res.text
+      realD = json.loads(data)
+      print(realD)
+      if realD["tokens"] == []:
+        addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
+        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ❌\n\n"
+      else:
+        addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
+        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\n\n"
+    bot.send_message(message.chat.id,
+                     f"First 10 Buyer of the token you seached\n\n{a}",
+                     parse_mode="html",
+                     disable_web_page_preview=True)
+  except:
+    print("no")
 
 
 def greetings(addy, message, msg):
