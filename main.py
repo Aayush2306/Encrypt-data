@@ -87,12 +87,18 @@ def decrypt_chacha20(ciphertext, nonce):
 
 
 @bot.message_handler(commands=['early'])
+@bot.message_handler(commands=['early'])
 def early(message):
   try:
     a = []
     ca = message.text.split(" ")[1]
     cas = w3.toChecksumAddress(ca)
-    mssg = f"First 10 early buyers wallets of the token you seached"
+    dexurl = f"https://api.dexscreener.com/latest/dex/tokens/{ca}"
+    ress = requests.get(dexurl)
+    deta = ress.text
+    realRes = json.loads(deta)
+    name = (realRes['pairs'][0]['baseToken']['name'])
+    symbol = (realRes['pairs'][0]['baseToken']['symbol'])
     topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
     event_filter = w3.eth.filter({
       'fromBlock': 0,
@@ -107,11 +113,12 @@ def early(message):
       if toAds.lower() != ca.lower():
         #print(toAds)
         a.append(toAds)
-    #print(a)
+  #print(a)
 
-  #print(a)
-  #a = list(set(a))
-  #print(a)
+
+#print(a)
+#a = list(set(a))
+#print(a)
     b = a[:10]
     a = ""
     for wallet in b:
@@ -120,15 +127,32 @@ def early(message):
       res = requests.get(url)
       data = res.text
       realD = json.loads(data)
-      print(realD)
+      #print(realD)
       if realD["tokens"] == []:
+        w = w3.toChecksumAddress(wallet)
+        balance = w3.eth.getBalance(w)
+        balance = round(float(balance / 10**18), 2)
+        fresh = w3.eth.getTransactionCount(w)
+        if fresh < 20:
+          f = "Fresh Wallet :- ✅"
+        else:
+          f = "Fresh Wallet :- ❌"
         addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
-        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ❌\n\n"
+        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ❌\nBalance :- {balance} ETH\n{f}\n\n"
       else:
+        w = w3.toChecksumAddress(wallet)
+        balance = w3.eth.getBalance(w)
+        balance = round(float(balance / 10**18), 2)
+        #print(balance)
+        fresh = w3.eth.getTransactionCount(w)
+        if fresh < 20:
+          f = "Fresh Wallet :- ✅"
+        else:
+          f = "Fresh Wallet :- ❌"
         addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
-        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\n\n"
+        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\nBalance :- {balance} ETH\n{f}\n\n"
     bot.send_message(message.chat.id,
-                     f"First 10 Buyer of the token you seached\n\n{a}",
+                     f"First 10 Buyer of {name} ({symbol})\n\n{a}",
                      parse_mode="html",
                      disable_web_page_preview=True)
   except:
