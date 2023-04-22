@@ -492,7 +492,7 @@ def larp(message, ca):
 @bot.message_handler(commands=["larp"])
 def getLarp(message):
   try:
-    ca = message.text.split(" ")[1]
+    ca = message.text.split(" ")[1].lower()
     larp(message, ca)
   except:
     print("no")
