@@ -87,11 +87,10 @@ def decrypt_chacha20(ciphertext, nonce):
 
 
 @bot.message_handler(commands=['early'])
-@bot.message_handler(commands=['early'])
 def early(message):
   try:
     a = []
-    ca = message.text.split(" ")[1]
+    ca = message.text.split(" ")[1].lower()
     cas = w3.toChecksumAddress(ca)
     dexurl = f"https://api.dexscreener.com/latest/dex/tokens/{ca}"
     ress = requests.get(dexurl)
