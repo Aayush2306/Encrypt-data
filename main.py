@@ -105,7 +105,10 @@ def early(message):
     response_json = response.json()
     block_number_hex = response_json['result']['blockNumber']
     block_number = int(block_number_hex, 16)
+    latest_block_number = int(w3.eth.blockNumber)
     next_block = block_number + 10000
+    if latest_block_number < next_block:
+      next_block = latest_block_number
 
     name = (realRes['pairs'][0]['baseToken']['name'])
     symbol = (realRes['pairs'][0]['baseToken']['symbol'])
