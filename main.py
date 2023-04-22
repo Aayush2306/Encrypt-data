@@ -85,7 +85,6 @@ def decrypt_chacha20(ciphertext, nonce):
   plaintext = unpad(cipher.decrypt(ciphertext), ChaCha20.block_size).decode()
   return plaintext
 
-
 @bot.message_handler(commands=['early'])
 def early(message):
   try:
@@ -96,12 +95,24 @@ def early(message):
     ress = requests.get(dexurl)
     deta = ress.text
     realRes = json.loads(deta)
+    url = f'https://api.etherscan.io/api?module=account&action=txlist&address={ca}&startblock=0&endblock=99999999&sort=asc&apikey={ethApi}'
+    response = requests.get(url)
+    response_json = response.json()
+    transaction_hash = response_json['result'][0]['hash']
+
+    url = f'https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash={transaction_hash}&apikey={ethApi}'
+    response = requests.get(url)
+    response_json = response.json()
+    block_number_hex = response_json['result']['blockNumber']
+    block_number = int(block_number_hex, 16)
+    next_block = block_number + 10000
+
     name = (realRes['pairs'][0]['baseToken']['name'])
     symbol = (realRes['pairs'][0]['baseToken']['symbol'])
     topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
     event_filter = w3.eth.filter({
-      'fromBlock': 0,
-      'toBlock': 'latest',
+      'fromBlock': block_number,
+      'toBlock': next_block,
       'address': cas,
       'topics': [topic_hash]
     })
