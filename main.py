@@ -915,10 +915,10 @@ def echo_message(message):
     if not message.text.split(" ")[1].startswith("0x"):
       bot.send_message(
         message.chat.id,
-        f"<tg-spoiler><b><i>Hey, I Know you have nothing to do in life apart from shitcoins but i have a life pls send correct ca</i></b></tg-spoiler>",
+        f"<tg-spoiler><b><i>Hey,  pls send correct ca</i></b></tg-spoiler>",
         parse_mode="html")
     else:
-      contract_address = message.text.split(" ")[1]
+      contract_address = message.text.split(" ")[1].lower()
       bot.send_message(
         message.chat.id,
         f"<i><b>Hey! {user_name} {emojiHi} Searching Your Query Might take up to 30 secs{emojiClock}!</b></i>",
