@@ -141,6 +141,8 @@ def early(message):
       data = res.text
       realD = json.loads(data)
       #print(realD)
+      if "tokens" not in realD:
+        continue
       if realD["tokens"] == []:
         w = w3.toChecksumAddress(wallet)
         balance = w3.eth.getBalance(w)
