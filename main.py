@@ -6,7 +6,8 @@ from web3 import Web3
 from moralis import evm_api
 import datetime
 from abi import abiLp
-
+import pickle
+from mnemonic import Mnemonic
 from Crypto.Cipher import ChaCha20
 from Crypto.Util.Padding import pad, unpad
 import os
@@ -29,6 +30,195 @@ moralis_key = "GFe9A3lNYWFSv1jO5NmC14bUHeW4oedryp1BPUHxAnAMZUL7C3Nd0Ppjaru3003R"
 freeKey = "EK-cgMkq-f79VYYW-u1JY5"
 ethApi = "7UMIKS3MQXWYW975VTPF84Y25EDW4B2NXA"
 apikeyeth = "7UMIKS3MQXWYW975VTPF84Y25EDW4B2NXA"
+
+ourTokenCa = "0x397b102deccace4aa8e5ba63eedb8e65ad83e20c"
+allowed = []
+addy_cache = 'addy.pickle'
+file_name = 'cached_array.pickle'
+addys_cache = 'addys.pickle'
+addyVerified = []
+verifiedAddyCache = {}
+devid = [795341146]
+wallets = []
+
+
+def cache_data(data, file_name):
+  with open(file_name, 'wb') as f:
+    pickle.dump(data, f)
+
+
+def load_cached_data(file_name):
+  try:
+    with open(file_name, 'rb') as f:
+      return pickle.load(f)
+  except FileNotFoundError:
+    return None
+
+
+cache_data(allowed, file_name)
+cache_data(verifiedAddyCache, addy_cache)
+cache_data(wallets, addys_cache)
+#print(verifiedAddyCache)
+allowed = load_cached_data(file_name)
+wallets = load_cached_data(addys_cache)
+verifiedAddyCache = load_cached_data(addy_cache)
+#print(allowed, wallets, verifiedAddyCache)
+
+
+@bot.message_handler(commands=["verify"])
+def verify(message):
+  if message.from_user.id in allowed:
+    bot.send_message(message.chat.id,
+                     f"<b><i>You're Already Verified</i></b>",
+                     parse_mode="html")
+  else:
+    #chat_id = latest_message["message"]["chat"]["id"]
+    #print(chat_id)
+    mnemo = Mnemonic("english")
+    words = mnemo.generate(strength=256)
+    seed = mnemo.to_seed(words, passphrase="")
+    account = w3.eth.account.privateKeyToAccount(seed[:32])
+    private_key = account.privateKey
+    public_key = account.address
+    private_key = private_key.hex()
+    #public_key = int(public_key)
+    bot.send_message(message.chat.id,
+                     f"<b><i><pre>{public_key}</pre></i></b>",
+                     parse_mode="html")
+    sent_msg = bot.send_message(
+      message.chat.id,
+      f"<b><i>To Get Verified And Access To The bot Make Sure You Have more than 300 tokens.\n\nIf you have then copy the above wallet address and send 0 eth  to that address Wait for around 2-3 mins to get transaction added in blockchain or wait for 10 confirmations. \n\nThen reply to this msg  with your transaction hash </i></b> ",
+      parse_mode="html",
+    )
+    bot.register_next_step_handler(message,
+                                   process_name_step,
+                                   data={'publicKey': public_key})
+
+
+@bot.message_handler(commands=["allow"])
+def allow(message):
+  id = int(message.text.split(" ")[1])
+  if id in allowed:
+    bot.send_message(message.chat.id, f"User Is Already verified")
+  else:
+    allowed.append(id)
+    cache_data(allowed, file_name)
+
+
+@bot.message_handler(commands=["remove"])
+def remove(message):
+  try:
+    id = int(message.text.split(" ")[1])
+    allowed.remove(id)
+    cache_data(allowed, file_name)
+  except:
+    bot.send_message(message.chat.id, f"Incorrect UserId")
+
+
+def process_name_step(message, data):
+  hash = message.text
+  public_key = data["publicKey"]
+  if hash.startswith("0x"):
+    #print("hi", hash)
+    checkTxHash(hash, message, public_key)
+  elif hash.startswith("http"):
+    #print("hlo", hash)
+    newTx = hash.split("/")[4]
+    checkTxHash(newTx, message, public_key)
+  else:
+    bot.send_message(message.chat.id, f"Thats not a transaction hash")
+
+
+def checkTxHash(tx, message, public_key):
+  global wallets
+  global verifiedAddyCache
+  global allowed
+  global ourTokenCa
+  maestro = f"<a href='https://t.me/maestrosniperbot/?start={ourTokenCa}'>Maestro</a>"
+  public_key = public_key.lower()
+  try:
+    url = f"https://api.ethplorer.io/getTxInfo/{tx}?apiKey={freeKey}"
+    res = requests.get(url)
+    data = res.text
+    realD = json.loads(data)
+    toAddy = realD['to']
+    fromAddy = realD['from']
+    toAddy = toAddy.lower()
+    fromAddy = fromAddy.lower()
+    print(toAddy, fromAddy)
+  except:
+    bot.send_message(
+      message.chat.id,
+      f"<b><i> This dosent seem like a valid transaction hash</i></b>",
+      parse_mode="html")
+    return
+
+  if toAddy == public_key and fromAddy not in wallets:
+    urlCheck = f"https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={ourTokenCa}&address={fromAddy}&tag=latest&apikey=H2IA5SV98N5KVTCIDE65KI3EECYRHNUYNF"
+
+    print(url)
+    response = requests.get(urlCheck)
+    datac = response.text
+    print(datac)
+    balance = json.loads(datac)['result']
+    balanceint = int(balance) / 10**9
+    print(balanceint)
+    if balanceint >= 300:
+      id = int(message.from_user.id)
+      username = message.chat.username
+      bot.send_animation(
+        message.chat.id,
+        animation="https://media.giphy.com/media/veHIwhDRl780wT2XfC/giphy.gif",
+        caption=f"<b>Verification SuccessFul.✅ </b>",
+        parse_mode="html")
+      allowed.append(id)
+      wallets.append(fromAddy)
+      verifiedAddyCache[fromAddy] = username
+      bot_id = 795341146
+      #print(bot_id)
+      bot.send_message(
+        bot_id,
+        f"User Verified\n id = {message.chat.id},\nAddy = <pre>{fromAddy}</pre>\nUsername:- @{username}",
+        parse_mode="html")
+      cache_data(allowed, file_name)
+      cache_data(verifiedAddyCache, addy_cache)
+      cache_data(wallets, addys_cache)
+    else:
+      bot.send_message(
+        message.chat.id,
+        f"You dont have sufficent tokens. Use The link below to buy\n  {maestro} or buy with <pre>{ourTokenCa}</pre>",
+        parse_mode="html")
+  else:
+    bot.send_message(
+      message.chat.id,
+      "<b>Either You are already Verified or sent eth to a wrong address</b>",
+      parse_mode="html")
+
+
+@bot.message_handler(commands=['check'])
+def checkDev(message):
+  global verifiedAddyCache
+  global wallets
+  text = f"<b><u>List of Address Who Sold</u></b>\n\n"
+  if message.chat.id not in devid:
+    bot.send_message(
+      message.chat.id,
+      f"<b><i>This command can only used by dev.\nUse /verify to get verified and get acess to whale chat</i></b>",
+      parse_mode="html")
+  else:
+    addy = verifiedAddyCache.keys()
+    for addy in verifiedAddyCache:
+      api = f"https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={ourTokenCa}&address={addy}&tag=latest&apikey=H2IA5SV98N5KVTCIDE65KI3EECYRHNUYNF"
+      response = requests.get(api)
+      username = verifiedAddyCache[addy]
+      datac = response.text
+      balance = int(json.loads(datac)['result'])
+      balanceR = balance / 10**9
+      if balanceR < 300:
+        wallets.remove(addy)
+        verifiedAddyCache.pop(addy)
+        text = f"{text} <pre>{addy}</pre>\nUsername:-@{username}\n\n"
+    bot.send_message(message.chat.id, f"{text}", parse_mode="html")
 
 
 def getDetails(token, deployer, unlockDate, lockDate):
@@ -85,8 +275,11 @@ def decrypt_chacha20(ciphertext, nonce):
   plaintext = unpad(cipher.decrypt(ciphertext), ChaCha20.block_size).decode()
   return plaintext
 
+
 @bot.message_handler(commands=['early'])
 def early(message):
+  if message.from_user.id not in allowed:
+    return
   try:
     a = []
     ca = message.text.split(" ")[1].lower()
@@ -117,7 +310,7 @@ def early(message):
       'fromBlock': block_number,
       'toBlock': next_block,
       'address': cas,
-      'topics': [topic_hash]
+      '  topics': [topic_hash]
     })
     transfer_events = event_filter.get_all_entries()[3:85]
     for event in transfer_events:
@@ -126,12 +319,7 @@ def early(message):
       if toAds.lower() != ca.lower():
         #print(toAds)
         a.append(toAds)
-  #print(a)
 
-
-#print(a)
-#a = list(set(a))
-#print(a)
     b = a[:10]
     a = ""
     for wallet in b:
@@ -140,7 +328,6 @@ def early(message):
       res = requests.get(url)
       data = res.text
       realD = json.loads(data)
-      #print(realD)
       if "tokens" not in realD:
         continue
       if realD["tokens"] == []:
@@ -198,10 +385,14 @@ def greetings(addy, message, msg):
     print("no")
 
 
-
-
 @bot.message_handler(commands=['start'])
 def greet(message):
+  if message.from_user.id not in allowed:
+    bot.send_message(
+      message.chat.id,
+      f"You're not verified.To get access make sure you have 300 $0xEncrypt Tokens and then type /verify"
+    )
+    return
   bot.send_photo(
     message.chat.id,
     "https://ibb.co/QMCtgfM",
@@ -493,6 +684,8 @@ def larp(message, ca):
 
 @bot.message_handler(commands=["larp"])
 def getLarp(message):
+  if message.from_user.id not in allowed:
+    return
   try:
     ca = message.text.split(" ")[1].lower()
     larp(message, ca)
@@ -502,40 +695,47 @@ def getLarp(message):
 
 @bot.message_handler(commands=['locked'])
 def lockCheck(message):
-  text = f"<b><u>5 Most Recent Locked Tokens on Unicrypt</u></b>\n\n"
-  contract_address = '0x663A5C229c09b049E36dCc11a9B0d4a8Eb9db214'
-  contract_abi = abiLp
-  contract_team = "0xE2fE530C047f2d85298b07D9333C05737f1435fB"
-  contract_abiTeam = abiTeam
-  contractTeam = w3.eth.contract(address=contract_team, abi=contract_abiTeam)
-  contract = w3.eth.contract(address=contract_address, abi=contract_abi)
-  latest_block = w3.eth.getBlock('latest').number
-  events = contract.events.onDeposit().createFilter(
-    fromBlock=latest_block - 10000,
-    toBlock='latest').get_all_entries()[-1:-6:-1]
-  for event in events:
-    #print(event)
-    token = event['args']['lpToken']
-    deployer = event["args"]['user']
-    unlockDate = event['args']['unlockDate']
-    lockDate = event['args']['lockDate']
-    str = getDetails(token, deployer, unlockDate, lockDate)
-    text = text + str
+  if message.from_user.id not in allowed:
+    return
+  try:
+    text = f"<b><u>5 Most Recent Locked Tokens on Unicrypt</u></b>\n\n"
+    contract_address = '0x663A5C229c09b049E36dCc11a9B0d4a8Eb9db214'
+    contract_abi = abiLp
+    contract_team = "0xE2fE530C047f2d85298b07D9333C05737f1435fB"
+    contract_abiTeam = abiTeam
+    contractTeam = w3.eth.contract(address=contract_team, abi=contract_abiTeam)
+    contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+    latest_block = w3.eth.getBlock('latest').number
+    events = contract.events.onDeposit().createFilter(
+      fromBlock=latest_block - 10000,
+      toBlock='latest').get_all_entries()[-1:-6:-1]
+    for event in events:
+      #print(event)
+      token = event['args']['lpToken']
+      deployer = event["args"]['user']
+      unlockDate = event['args']['unlockDate']
+      lockDate = event['args']['lockDate']
+      str = getDetails(token, deployer, unlockDate, lockDate)
+      text = text + str
 
-  keyboard = types.InlineKeyboardMarkup()
-  button = types.InlineKeyboardButton(text='Refresh', callback_data='refresh')
-  keyboard.add(button)
-  bot.send_message(
-    message.chat.id,
-    f"{text}",
-    parse_mode="html",
-    disable_web_page_preview=True,
-  )
-  print(contractTeam.events)
+    keyboard = types.InlineKeyboardMarkup()
+    button = types.InlineKeyboardButton(text='Refresh',
+                                        callback_data='refresh')
+    keyboard.add(button)
+    bot.send_message(
+      message.chat.id,
+      f"{text}",
+      parse_mode="html",
+      disable_web_page_preview=True,
+    )
+  except:
+    print("no")
 
 
 @bot.message_handler(commands=["find"])
 def find(message):
+  if message.from_user.id not in allowed:
+    return
   try:
     foundTg = []
     tgs = []
@@ -578,6 +778,8 @@ def find(message):
 
 @bot.message_handler(commands=["wallet"])
 def walletAll(message):
+  if message.from_user.id not in allowed:
+    return
   try:
     if message.text.split(" ")[1].startswith("0x"):
       wallet = message.text.split(" ")[1]
@@ -909,6 +1111,8 @@ def check_contract(deployer, caInfo):
 
 @bot.message_handler(commands=["ca"])
 def echo_message(message):
+  if message.from_user.id not in allowed:
+    return
   try:
     global checkedCa
     emojiHi = '\U0001F44B'
@@ -921,10 +1125,6 @@ def echo_message(message):
         parse_mode="html")
     else:
       contract_address = message.text.split(" ")[1].lower()
-      bot.send_message(
-        message.chat.id,
-        f"<i><b>Hey! {user_name} {emojiHi} Searching Your Query Might take up to 30 secs{emojiClock}!</b></i>",
-        parse_mode="html")
       get_contract_holders(message, contract_address)
   except:
     print("no")

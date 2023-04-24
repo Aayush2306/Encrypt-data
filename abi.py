@@ -1335,3 +1335,106 @@ value = {
   'total_supply':
   '10000000'
 }
+
+{
+  'hash':
+  '0x58a7ea3b51e609eb87bdcfe96e128a7e346245ec5465760c281aa4abc13d6c3e',
+  'timestamp':
+  1681934843,
+  'blockNumber':
+  17082909,
+  'confirmations':
+  2327,
+  'success':
+  True,
+  'from':
+  '0xbf2954915c89768f4293ba412ba1368382217a8c',
+  'to':
+  '0x397b102deccace4aa8e5ba63eedb8e65ad83e20c',
+  'value':
+  0,
+  'input':
+  '0xa9059cbb000000000000000000000000000000000000000000000000000000000000dead000000000000000000000000000000000000000000000000000001d1a94a2000',
+  'gasLimit':
+  93073,
+  'gasUsed':
+  62049,
+  'logs': [],
+  'operations': [{
+    'timestamp':
+    1681934843,
+    'transactionHash':
+    '0x58a7ea3b51e609eb87bdcfe96e128a7e346245ec5465760c281aa4abc13d6c3e',
+    'value':
+    '100000000000',
+    'intValue':
+    100000000000,
+    'type':
+    'transfer',
+    'isEth':
+    False,
+    'priority':
+    158,
+    'from':
+    '0xbf2954915c89768f4293ba412ba1368382217a8c',
+    'to':
+    '0x397b102deccace4aa8e5ba63eedb8e65ad83e20c',
+    'addresses': [
+      '0xbf2954915c89768f4293ba412ba1368382217a8c',
+      '0x397b102deccace4aa8e5ba63eedb8e65ad83e20c'
+    ],
+    'tokenInfo': {
+      'address': '0x397b102deccace4aa8e5ba63eedb8e65ad83e20c',
+      'decimals': '9',
+      'name': 'Encryption AI',
+      'owner': '0x0000000000000000000000000000000000000000',
+      'price': False,
+      'symbol': '0xEncrypt',
+      'totalSupply': '1000000000000000',
+      'transfersCount': 4978,
+      'txsCount': 718,
+      'issuancesCount': 1,
+      'lastUpdated': 1681961255,
+      'holdersCount': 501,
+      'ethTransfersCount': 0
+    }
+  }, {
+    'timestamp':
+    1681934843,
+    'transactionHash':
+    '0x58a7ea3b51e609eb87bdcfe96e128a7e346245ec5465760c281aa4abc13d6c3e',
+    'value':
+    '1900000000000',
+    'intValue':
+    1900000000000,
+    'type':
+    'transfer',
+    'isEth':
+    False,
+    'priority':
+    159,
+    'from':
+    '0xbf2954915c89768f4293ba412ba1368382217a8c',
+    'to':
+    '0x000000000000000000000000000000000000dead',
+    'addresses': [
+      '0xbf2954915c89768f4293ba412ba1368382217a8c',
+      '0x000000000000000000000000000000000000dead'
+    ],
+    'tokenInfo': {
+      'address': '0x397b102deccace4aa8e5ba63eedb8e65ad83e20c',
+      'decimals': '9',
+      'name': 'Encryption AI',
+      'owner': '0x0000000000000000000000000000000000000000',
+      'price': False,
+      'symbol': '0xEncrypt',
+      'totalSupply': '1000000000000000',
+      'transfersCount': 4978,
+      'txsCount': 718,
+      'issuancesCount': 1,
+      'lastUpdated': 1681961255,
+      'holdersCount': 501,
+      'ethTransfersCount': 0
+    }
+  }]
+}
