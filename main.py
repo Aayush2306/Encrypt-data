@@ -55,9 +55,9 @@ def load_cached_data(file_name):
     return None
 
 
-cache_data(allowed, file_name)
-cache_data(verifiedAddyCache, addy_cache)
-cache_data(wallets, addys_cache)
+#cache_data(allowed, file_name)
+#cache_data(verifiedAddyCache, addy_cache)
+#cache_data(wallets, addys_cache)
 #print(verifiedAddyCache)
 allowed = load_cached_data(file_name)
 wallets = load_cached_data(addys_cache)
