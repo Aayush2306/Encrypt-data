@@ -247,7 +247,7 @@ def getDetails(token, deployer, unlockDate, lockDate):
       lala = f"{lockedatHr} {lockedatMin}"
 
     unlock = unlock[1:].split(",")[0]
-    str = f"{name}\n\nLp Pair Address:- <pre>{token}</pre>\n\nLocked {lala} ago\nLocked for:- {unlock} \n{buyM} | {chart} | {lockLink}\n----------------------------------------------------\n\n"
+    str = f"{name}\n\nLp Pair Address:- <pre>{token}</pre>\n\nLocked {lala} ago\nLocked for:- {unlock} \n{buyM} | {chart} | {lockLink}\n----------------------------------------------------\n"
     return str
   except:
     print("no")
@@ -316,6 +316,8 @@ def early(message):
     })
     transfer_events = event_filter.get_all_entries()[3:85]
     for event in transfer_events:
+      if len(event['topics']) < 3:
+        continue
       toAds = "0x" + (event['topics'][2].hex())[26:]
 
       if toAds.lower() != ca.lower():
