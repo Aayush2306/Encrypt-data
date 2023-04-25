@@ -223,14 +223,7 @@ def checkDev(message):
 
 def getDetails(token, deployer, unlockDate, lockDate):
   try:
-    dexurl = f"https://api.dexscreener.com/latest/dex/pairs/ethereum/{token}"
-    ress = requests.get(dexurl)
-    deta = ress.text
-    realRes = json.loads(deta)
-    #print(realRes['pairs'][0])
-    mcap = (realRes['pairs'][0]['fdv'])
-    lp = (realRes['pairs'][0]['liquidity']['quote'])
-    vol5 = (realRes['pairs'][0]['volume']['m5'])
+    
     url = f"https://api.etherscan.io/api?module=account&action=tokentx&address={token}&startblock=0&endblock=999999999&sort=asc&apikey={ethApi}"
     response = requests.get(url)
     data = response.json()
@@ -254,7 +247,7 @@ def getDetails(token, deployer, unlockDate, lockDate):
       lala = f"{lockedatHr} {lockedatMin}"
 
     unlock = unlock[1:].split(",")[0]
-    str = f"{name}\n\nLp Pair Address:- <pre>{token}</pre>\nMarketCap:- {mcap}$\nVolume:- {vol5}$\nLocked {lala} ago\nLocked for:- {unlock} \n{buyM} | {chart} | {lockLink}\n----------------------------------------------------\n\n"
+    str = f"{name}\n\nLp Pair Address:- <pre>{token}</pre>\n\nLocked {lala} ago\nLocked for:- {unlock} \n{buyM} | {chart} | {lockLink}\n----------------------------------------------------\n\n"
     return str
   except:
     print("no")
