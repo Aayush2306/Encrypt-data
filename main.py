@@ -1235,7 +1235,7 @@ def walletValue(message, wallet):
     profit = round(profit, 3)
     bot.send_message(
       message.chat.id,
-      f"{addressWallet} <b><i><pre>{wallet}</pre></i></b>\n\n<b>Basic Info</b>\n\n<i>Balance:- {ethBalance}eth\nUsdValue:- ${totalUsd}\nTotal Transactions:-{transactions}\n\n<b>Latest 20 Tokens Buys And Sells</b>\n\n{str}\n</i><b>Totals Profits Made:- </b> <i>{profit}eth</i>\n\n<b><u>Note:-The user might still be holding his tokens so profits could be negative</u></b>",
+      f"{addressWallet} <b><i><pre>{wallet}</pre></i></b>\n\n<b>Basic Info</b>\n\n<i>Balance:- {ethBalance}eth\nUsdValue:- ${totalUsd}\nTotal Transactions:-{transactions}\n\n<b>Latest 20 Tokens Buys And Sells</b>\n\n{str}\n</i><b>Totals Profits Made: </b> <i>{profit}eth</i>\n\n<b><u>Note:-The user might still be holding his tokens so profits could be negative</u></b>",
       parse_mode="html",
       disable_web_page_preview=True)
   except:
