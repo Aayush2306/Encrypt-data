@@ -280,8 +280,6 @@ def decrypt_chacha20(ciphertext, nonce):
 
 @bot.message_handler(commands=['early'])
 def early(message):
-  if message.from_user.id not in allowed:
-    return
   try:
     a = []
     ca = message.text.split(" ")[1].lower()
@@ -309,26 +307,53 @@ def early(message):
     symbol = (realRes['pairs'][0]['baseToken']['symbol'])
     topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
     event_filter = w3.eth.filter({
-      'fromBlock': block_number,
-      'toBlock': next_block,
-      'address': cas,
-      '  topics': [topic_hash]
-    })
-    transfer_events = event_filter.get_all_entries()[3:85]
+    'fromBlock': block_number,
+    'toBlock': next_block,
+    'address': cas,
+    '  topics': [topic_hash]
+  })
+    transfer_events = event_filter.get_all_entries()[3:100]
     for event in transfer_events:
       if len(event['topics']) < 3:
         continue
+    #print(event['topics'])
       toAds = "0x" + (event['topics'][2].hex())[26:]
 
       if toAds.lower() != ca.lower():
-        #print(toAds)
-        a.append(toAds)
-
+      #print(toAds)
+        if toAds not in a:
+          a.append(toAds)
+  #print(a)
     b = a[:10]
+    z = looper(b, ca)
+    bot.send_message(message.chat.id,
+                   f"First 10 Buyer of {name} ({symbol})\n\n{z}",
+                   parse_mode="html",
+                   disable_web_page_preview=True)
+    k = a[10:20]
+  #print(c)
+    d = looper(k, ca)
+    bot.send_message(message.chat.id,
+                   f"10 - 20 Buyer of {name} ({symbol})\n\n{d}",
+                   parse_mode="html",
+                   disable_web_page_preview=True)
+  #print(d)
+    e = a[20:30]
+    l = looper(e, ca)
+    bot.send_message(message.chat.id,
+                   f"20 - 30 Buyer of {name} ({symbol})\n\n{l}",
+                   parse_mode="html",
+                   disable_web_page_preview=True)
+  
+  except:
+    print("no")
+    
+def looper(b, ca):
+  try:
     a = ""
     for wallet in b:
       url = f"https://api.ethplorer.io/getAddressInfo/{wallet}?apiKey={freeKey}&token={ca}"
-      #print(url)
+    #print(url)
       res = requests.get(url)
       data = res.text
       realD = json.loads(data)
@@ -349,7 +374,7 @@ def early(message):
         w = w3.toChecksumAddress(wallet)
         balance = w3.eth.getBalance(w)
         balance = round(float(balance / 10**18), 2)
-        #print(balance)
+      #print(balance)
         fresh = w3.eth.getTransactionCount(w)
         if fresh < 20:
           f = "Fresh Wallet :- ✅"
@@ -357,10 +382,8 @@ def early(message):
           f = "Fresh Wallet :- ❌"
         addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
         a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\nBalance :- {balance} ETH\n{f}\n\n"
-    bot.send_message(message.chat.id,
-                     f"First 10 Buyer of {name} ({symbol})\n\n{a}",
-                     parse_mode="html",
-                     disable_web_page_preview=True)
+
+    return a
   except:
     print("no")
 
