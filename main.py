@@ -70,10 +70,13 @@ verifiedAddyCache = load_cached_data(addy_cache)
 
 @bot.message_handler(commands=['order'])
 def order(message):
-  bot.reply_to(message,
-               f"<b>Enter Your Token Contract Address</b>",
-               parse_mode="html")
-  bot.register_next_step_handler(message, get_token)
+  if not message.chat.type == "private":
+    return
+  else:
+    bot.reply_to(message,
+                 f"<b>Enter Your Token Contract Address</b>",
+                 parse_mode="html")
+    bot.register_next_step_handler(message, get_token)
 
 
 def get_token(message):
