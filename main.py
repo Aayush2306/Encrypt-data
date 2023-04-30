@@ -492,7 +492,7 @@ def greet(message):
     return
   bot.send_photo(
     message.chat.id,
-    "https://ibb.co/QMCtgfM",
+    "https://ibb.co/F3hfcjj",
     caption=
     f"<b>Welcome To Encryption 🔐 Ai Bot .</b> \n \nThis Bot is used for encrypting a contract address into a format which snipers, telegram scrappers cant detect so the launch is without bots.\n\n<i>use /encrypt then contract address to encrypt the contract \nuse /decrypt to get the contract address from encrypted message\nuse /larp then contract address to check if a token is larp and get various info\nuse /locked to get 5 latest token whose lp is locked on unicrypt\nuse /find amd the token name to find telegram of the token\nuse /wallet and wallet address to get last 20 ERC 20 txs of the wallet</i>",
     parse_mode="html")
