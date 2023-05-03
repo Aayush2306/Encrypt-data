@@ -68,6 +68,68 @@ verifiedAddyCache = load_cached_data(addy_cache)
 
 
 
+@bot.message_handler(commands=['quick'])
+def quick(message):
+  try:
+    uncx = "0x663A5C229c09b049E36dCc11a9B0d4a8Eb9db214"
+    teamF = "0xE2fE530C047f2d85298b07D9333C05737f1435fB"
+    ca = message.text.split(" ")[1]
+    deployer = checkDeployer(ca)
+    url = f"https://api.ethplorer.io/getTokenInfo/{ca}?apiKey={freeKey}"
+    response_API = requests.get(url)
+    data = response_API.text
+    realData = json.loads(data)
+    #print(realData)
+    name = realData["name"]
+    holderCount = realData["holdersCount"]
+    symbol = realData["symbol"]
+    deployer = realData["owner"]
+    if deployer.startswith("0x0000"):
+      renounce = f"Contract Is Renounced ✅"
+    else:
+      renounce = f"Contract is not Renounced ❌"
+  #print(renounce)
+    dexurl = f"https://api.dexscreener.com/latest/dex/tokens/{ca}"
+    ress = requests.get(dexurl)
+    deta = ress.text
+    realRes = json.loads(deta)
+    #print(realRes["pairs"])
+    pair = (realRes['pairs'][0]['pairAddress'])
+    dexurl = realRes['pairs'][0]['url']
+    mcap = realRes['pairs'][0]['fdv']
+    liqudity = realRes['pairs'][0]['liquidity']['usd']
+    volume1h = realRes['pairs'][0]['volume']['h1']
+    volume24h = realRes['pairs'][0]['volume']['h24']
+    volume5m = realRes['pairs'][0]['volume']['m5']
+    url = f"https://api.ethplorer.io/getTopTokenHolders/{pair}?apiKey={freeKey}"
+    daata = requests.get(url)
+    realdd = daata.text
+    realreal = json.loads(realdd)
+    #print(realreal)
+    lpholders = (realreal['holders'])
+    topLp = lpholders[0]["address"]
+    if topLp.lower() == uncx.lower():
+      lock = f"LP Locked On Unicrypt ✅"
+    elif topLp.lower() == teamF.lower():
+      lock = f"LP Locked On TeamFinance ✅"
+    elif topLp.startswith("0x000000"):
+      lock = f"LP Burnt 🔥"
+    else:
+      lock = f"LP Not Locked ❌"
+
+    dexScrneer = f"<a href='{dexurl}'>DexSc</a>"
+    contract = f"<a href='etherscan.io/token/{ca}'>Contract</a>"
+    maestro = f"<a href='https://t.me/maestrosniperbot/?start={ca}'>Maestro</a>"
+    bot.send_message(
+      message.chat.id,
+      f"<b>{name} ({symbol}) ETH</b> \n--------------------------------------------\n{renounce}\n{lock}\n--------------------------------------------<b>\n                Additonal Info</b>\n\nMarketCap : <i>${mcap}</i>\nLiquidity : <i>${liqudity}</i>\nLast 5 mins volume : <i>${volume5m}</i>\nLast 1 hours volume : <i>${volume1h}</i>\nLast 24 hours volume : <i>${volume24h}</i>\n\n{maestro} | {dexScrneer} | {contract}",
+      parse_mode="html",
+      disable_web_page_preview=True)
+  except:
+    print("no")
+
+
+
 @bot.message_handler(commands=['order'])
 def order(message):
   if not message.chat.type == "private":
