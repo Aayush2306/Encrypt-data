@@ -66,8 +66,6 @@ verifiedAddyCache = load_cached_data(addy_cache)
 #print(allowed, wallets, verifiedAddyCache)
 
 
-
-
 @bot.message_handler(commands=['quick'])
 def quick(message):
   try:
@@ -127,7 +125,6 @@ def quick(message):
       disable_web_page_preview=True)
   except:
     print("no")
-
 
 
 @bot.message_handler(commands=['order'])
@@ -193,8 +190,6 @@ def get_telegram(message, ca, perc, chatId, dev):
     bot_id,
     f"New Order\n\n Contract :- <pre>{ca}</pre>\n\nPercentage:-{perc}\n\nChatId:- <pre>{chatId}</pre>\n\nDev:- {dev}\n\nTelegram:- {telegram}",
     parse_mode="html")
-
-
 
 
 @bot.message_handler(commands=["verify"])
@@ -295,7 +290,7 @@ def checkTxHash(tx, message, public_key):
     balance = json.loads(datac)['result']
     balanceint = int(balance) / 10**9
     print(balanceint)
-    if balanceint >= 300:
+    if balanceint >= 200:
       id = int(message.from_user.id)
       username = message.chat.username
       bot.send_animation(
@@ -355,7 +350,7 @@ def checkDev(message):
 
 def getDetails(token, deployer, unlockDate, lockDate):
   try:
-    
+
     url = f"https://api.etherscan.io/api?module=account&action=tokentx&address={token}&startblock=0&endblock=999999999&sort=asc&apikey={ethApi}"
     response = requests.get(url)
     data = response.json()
@@ -383,7 +378,6 @@ def getDetails(token, deployer, unlockDate, lockDate):
     return str
   except:
     print("no")
-
 
 
 def checkDeployer(caInfo):
@@ -439,11 +433,11 @@ def early(message):
     symbol = (realRes['pairs'][0]['baseToken']['symbol'])
     topic_hash = Web3.keccak(text='Transfer(address,address,uint256)').hex()
     event_filter = w3.eth.filter({
-    'fromBlock': block_number,
-    'toBlock': next_block,
-    'address': cas,
-    '  topics': [topic_hash]
-  })
+      'fromBlock': block_number,
+      'toBlock': next_block,
+      'address': cas,
+      '  topics': [topic_hash]
+    })
     transfer_events = event_filter.get_all_entries()[3:100]
     for event in transfer_events:
       if len(event['topics']) < 3:
@@ -452,40 +446,41 @@ def early(message):
       toAds = "0x" + (event['topics'][2].hex())[26:]
 
       if toAds.lower() != ca.lower():
-      #print(toAds)
+        #print(toAds)
         if toAds not in a:
           a.append(toAds)
   #print(a)
     b = a[:10]
     z = looper(b, ca)
     bot.send_message(message.chat.id,
-                   f"First 10 Buyer of {name} ({symbol})\n\n{z}",
-                   parse_mode="html",
-                   disable_web_page_preview=True)
+                     f"First 10 Buyer of {name} ({symbol})\n\n{z}",
+                     parse_mode="html",
+                     disable_web_page_preview=True)
     k = a[10:20]
-  #print(c)
+    #print(c)
     d = looper(k, ca)
     bot.send_message(message.chat.id,
-                   f"10 - 20 Buyer of {name} ({symbol})\n\n{d}",
-                   parse_mode="html",
-                   disable_web_page_preview=True)
-  #print(d)
+                     f"10 - 20 Buyer of {name} ({symbol})\n\n{d}",
+                     parse_mode="html",
+                     disable_web_page_preview=True)
+    #print(d)
     e = a[20:30]
     l = looper(e, ca)
     bot.send_message(message.chat.id,
-                   f"20 - 30 Buyer of {name} ({symbol})\n\n{l}",
-                   parse_mode="html",
-                   disable_web_page_preview=True)
-  
+                     f"20 - 30 Buyer of {name} ({symbol})\n\n{l}",
+                     parse_mode="html",
+                     disable_web_page_preview=True)
+
   except:
     print("no")
-    
+
+
 def looper(b, ca):
   try:
     a = ""
     for wallet in b:
       url = f"https://api.ethplorer.io/getAddressInfo/{wallet}?apiKey={freeKey}&token={ca}"
-    #print(url)
+      #print(url)
       res = requests.get(url)
       data = res.text
       realD = json.loads(data)
@@ -503,17 +498,24 @@ def looper(b, ca):
         addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
         a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ❌\nBalance :- {balance} ETH\n{f}\n\n"
       else:
+        #print(realD)
         w = w3.toChecksumAddress(wallet)
+        rawBalance = int(realD["tokens"][0]["rawBalance"])
+        totalsuuply = int(realD["tokens"][0]["tokenInfo"]["totalSupply"])
+        #print(totalsuuply)
+        #print(rawBalance)
+        share = (rawBalance / totalsuuply) * 100
+        share = round(share, 4)
         balance = w3.eth.getBalance(w)
         balance = round(float(balance / 10**18), 2)
-      #print(balance)
+        #print(balance)
         fresh = w3.eth.getTransactionCount(w)
         if fresh < 20:
           f = "Fresh Wallet :- ✅"
         else:
           f = "Fresh Wallet :- ❌"
         addy = f"<a href ='etherscan.io/address/{wallet}'>Address</a>"
-        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\nBalance :- {balance} ETH\n{f}\n\n"
+        a = a + f"{addy} :- <pre>{wallet}</pre>\nStill Holding :- ✅\nBalance :- {balance} ETH\n{f}\nHolds {share}% of supply\n\n"
 
     return a
   except:
