@@ -13,6 +13,7 @@ from Crypto.Util.Padding import pad, unpad
 import os
 import random
 from abi import abiTeam
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 key = os.urandom(32)
 nonce = os.urandom(8)
@@ -64,6 +65,24 @@ allowed = load_cached_data(file_name)
 wallets = load_cached_data(addys_cache)
 verifiedAddyCache = load_cached_data(addy_cache)
 #print(allowed, wallets, verifiedAddyCache)
+
+
+@bot.message_handler(commands=['subscription'])
+def subscription(message):
+  if not message.chat.type == "private":
+    return
+  keyboard = InlineKeyboardMarkup(row_width=2)
+  button1 = InlineKeyboardButton(text='1 Month Subscription',
+                                 callback_data='1_month_sub')
+  button2 = InlineKeyboardButton(text='3 Months Subscription',
+                                 callback_data='3_months_sub')
+  keyboard.add(button1, button2)
+  # send message with inline keyboard
+  bot.reply_to(
+    message,
+    'Welcome to Encryption AI susbcription portal.\n\nPlease choose one of the following subscription methods.\n\n<b>1 Month Sub:</b> Cost only 100$ token, suitable for people who wants to try our bot.\n\n<b>3 Months Sub:</b> More info will be out soon.',
+    reply_markup=keyboard,
+    parse_mode="html")
 
 
 @bot.message_handler(commands=['quick'])
@@ -214,7 +233,7 @@ def verify(message):
                      parse_mode="html")
     sent_msg = bot.send_message(
       message.chat.id,
-      f"<b><i>To Get Verified And Access To The bot Make Sure You Have more than 300 tokens.\n\nIf you have then copy the above wallet address and send 0 eth  to that address Wait for around 2-3 mins to get transaction added in blockchain or wait for 10 confirmations. \n\nThen reply to this msg  with your transaction hash </i></b> ",
+      f"<b><i>To Get Verified And Access To The bot Make Sure You Have more than 200 tokens.\n\nIf you have then copy the above wallet address and send 0 eth  to that address Wait for around 2-3 mins to get transaction added in blockchain or wait for 10 confirmations. \n\nThen reply to this msg  with your transaction hash </i></b> ",
       parse_mode="html",
     )
     bot.register_next_step_handler(message,
@@ -1071,6 +1090,92 @@ def get_contract_holders(message, contract_address):
     print("noo")
 
 
+def monthsub1(message):
+  if message.chat.id in allowed:
+    bot.send_message(message.chat.id, "You're already verified ")
+    return
+  bot.send_message(
+    message.chat.id,
+    f"<pre>0x2346Aab9586660F4DCFef6AC80c0301438292eE7</pre>\n\nTo Get Verified And Access To The bot Make Sure You Have more than 100$ tokens.\n\nIf you have then copy the above wallet address and send 100$ tokens to that address.\n\n<u><b>IMPORTANT:</b></u> Wait for around 3-5 mins to get transaction added in blockchain or wait for atleast 10 confirmations. \n\nThen reply to this msg  with your transaction hash.\n\nIMPORTANT: Dont send amount less than 90 always double check before sending.",
+    parse_mode="html",
+  )
+  bot.register_next_step_handler(
+    message,
+    process_1month,
+  )
+
+
+def process_1month(message):
+  hash = message.text
+  if hash.startswith("0x"):
+    #print("hi", hash)
+    checkTxHash1Month(hash, message)
+  elif hash.startswith("http"):
+    #print("hlo", hash)
+    newTx = hash.split("/")[4]
+    checkTxHash1Month(newTx, message)
+  else:
+    bot.send_message(message.chat.id, f"Thats not a transaction hash")
+
+
+def checkTxHash1Month(hash, message):
+  global wallets
+  global verifiedAddyCache
+  global allowed
+  smartca = "0x2346Aab9586660F4DCFef6AC80c0301438292eE7"
+  smartca = smartca.lower()
+  try:
+    url = f"https://api.ethplorer.io/getTxInfo/{hash}?apiKey={freeKey}"
+    res = requests.get(url)
+    data = res.text
+    realD = json.loads(data)
+    print(realD['operations'][1]['to'])
+    tokenValue = int(realD['operations'][1]['value'])
+    tokenValue = tokenValue / 10**9
+    print(tokenValue)
+    toAddy = (realD['operations'][1]['to'])
+    fromAddy = realD['from']
+    toAddy = toAddy.lower()
+    fromAddy = fromAddy.lower()
+    dexurl = f"https://api.dexscreener.com/latest/dex/tokens/{ourTokenCa}"
+    ress = requests.get(dexurl)
+    deta = ress.text
+    realRes = json.loads(deta)
+    price = float(realRes['pairs'][0]['priceUsd'])
+    dollarValue = float(price * tokenValue)
+    #print(toAddy, fromAddy, price, dollarValue)
+  except:
+    bot.send_message(
+      message.chat.id,
+      f"<b><i> This dosent seem like a valid transaction hash</i></b>",
+      parse_mode="html")
+    return
+  if toAddy == smartca and dollarValue > 90 and hash not in wallets:
+    id = int(message.from_user.id)
+    username = message.chat.username
+    bot.send_animation(
+      message.chat.id,
+      animation="https://media.giphy.com/media/veHIwhDRl780wT2XfC/giphy.gif",
+      caption=f"<b>Verification SuccessFull ✅. </b>",
+      parse_mode="html")
+    allowed.append(id)
+    wallets.append(hash)
+    verifiedAddyCache[fromAddy] = username
+    bot_id = 795341146
+    #print(bot_id)
+    bot.send_message(
+      bot_id,
+      f"User Verified\n id = {message.chat.id},\nAddy = <pre>{fromAddy}</pre>\nUsername:- @{username}\nSub for : 1 month",
+      parse_mode="html")
+    cache_data(allowed, file_name)
+    cache_data(verifiedAddyCache, addy_cache)
+    cache_data(wallets, addys_cache)
+  else:
+    bot.send_message(
+      message.chat.id,
+      "Something went wrong dm @EncryptionAIDEV if you face any issues")
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def additional_info_handler(call):
   data = (call.data)
@@ -1079,6 +1184,10 @@ def additional_info_handler(call):
     data = json.loads(data)
     ca = data['addy']
     mainSabkaBaap(message, ca)
+  if data == "1_month_sub":
+    monthsub1(message)
+  if data == "3_months_sub":
+    print("3 months sub")
 
 
 def mainSabkaBaap(message, caInfo):
