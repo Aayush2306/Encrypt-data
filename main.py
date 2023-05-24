@@ -570,7 +570,7 @@ def greet(message):
   if message.from_user.id not in allowed:
     bot.send_message(
       message.chat.id,
-      f"You're not verified.To get access make sure you have 300 $0xEncrypt Tokens and then type /verify"
+      f"You're not verified.To get access make sure you have 200 $0xEncrypt Tokens and then type /verify"
     )
     return
   bot.send_message(
