@@ -85,6 +85,39 @@ def subscription(message):
     parse_mode="html")
 
 
+@bot.message_handler(commands=['supply'])
+def supply(message):
+  try:
+    ca = message.text.split(" ")[1]
+    if ca.startswith("0x"):
+      url = f"https://api.ethplorer.io/getAddressInfo/{ca}?apiKey={freeKey}&token={ca}"
+      response_API = requests.get(url)
+      data = response_API.text
+      realData = json.loads(data)
+      #print(realData)
+      decimal = float(realData['tokenInfo']['decimals'])
+      name = realData['tokenInfo']['name']
+      totalSupply = float(realData['tokenInfo']['totalSupply'])
+      rawBalance = float(realData['tokens'][0]['balance'])
+      percent = round(float((rawBalance / totalSupply) * 100), 5)
+      rawBalance = round(rawBalance / (10**decimal), 1)
+      #print(decimal, name, totalSupply, rawBalance, percent)
+      buy = f"https://t.me/MaestroSniperBot?start={ca}"
+      chart = f"<a href='https://dexscreener.com/ethereum/{ca}'>DexScreener</a>"
+      #info = f"https://t.me/SmartWalletAiBot?start={token_ca}"
+      #infoM = f"<a href='{info}'>Click Here To Get Detailed Info</a>"
+      buyM = f"<a href='{buy}'>Maestro</a>"
+      bot.send_message(
+        message.chat.id,
+        f"Token Name: {name}\n\nCA: <pre>{ca}</pre>\n\nTokens in contract : {rawBalance} ({percent}%)\n\n{buyM} | {chart}",
+        parse_mode="html",
+        disable_web_page_preview=True)
+    else:
+      bot.send_message(message.chat.id, f"That's not a contract address.")
+  except:
+    bot.send_message(message.chat.id, f"No tokens in contract")
+
+
 @bot.message_handler(commands=['quick'])
 def quick(message):
   try:
